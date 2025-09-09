@@ -3,24 +3,13 @@
 import  { useState, useEffect } from 'react';
 import { useParams } from "next/navigation";
 import Image from 'next/image';
-// import type { Post } from '../../_types/types';
-import { MicroCmsPost } from '@/app/_types/post';
+import { MicroCmsPost } from '@/types/post';
 
 export default function Detail() {
   const { id } = useParams<{ id: string }>();
   const [post, setPost] = useState<MicroCmsPost | null>(null);
-  // const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // APIでpostsを取得する処理をuseEffectで実行します。
-  // useEffect(() => {
-  //   const fetcher = async () => {
-  //     setIsLoading(true);
-  //     const res = await fetch(`https://1hmfpsvto6.execute-api.ap-northeast-1.amazonaws.com/dev/posts/${id}`);
-  //     const data = await res.json();
-  //     setPost(data.post);
-  //     setIsLoading(false);
-  //   }
   useEffect(() => {
     const fetcher = async () => {
       setIsLoading(true)

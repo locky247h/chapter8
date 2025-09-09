@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 // import type { Post } from './_types/types';
-import { MicroCmsPost } from './_types/post';
+import { MicroCmsPost } from '../types/post';
 
 export default function Home() {
   // const [posts, setPosts] = useState<Post[]>([]);
