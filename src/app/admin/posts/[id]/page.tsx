@@ -11,6 +11,7 @@ export default function Page() {
   const [content, setContent] = useState('')
   const [thumbnailUrl, setThumbnailUrl] = useState('')
   const [categories, setCategories] = useState<Category[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false) // ✅ 送信中フラグ追加
   const { id } = useParams()
   const router = useRouter()
 
@@ -18,28 +19,38 @@ export default function Page() {
     // フォームのデフォルトの動作をキャンセルします。
     e.preventDefault()
 
-    // 記事を作成します。
-    await fetch(`/api/admin/posts/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ title, content, thumbnailUrl, categories }),
-    })
+    setIsSubmitting(true) // ✅ 送信開始
+    try {
+      // 記事を作成します。
+      await fetch(`/api/admin/posts/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title, content, thumbnailUrl, categories }),
+      })
 
-    alert('記事を更新しました。')
+      alert('記事を更新しました。')
+    } finally {
+      setIsSubmitting(false) // ✅ 終わったら解除
+    }
   }
 
   const handleDeletePost = async () => {
     if (!confirm('記事を削除しますか？')) return
 
-    await fetch(`/api/admin/posts/${id}`, {
-      method: 'DELETE',
-    })
+    setIsSubmitting(true) // ✅ 削除中も操作不可にする
+    try {
+      await fetch(`/api/admin/posts/${id}`, {
+        method: 'DELETE',
+      })
 
-    alert('記事を削除しました。')
+      alert('記事を削除しました。')
 
-    router.push('/admin/posts')
+      router.push('/admin/posts')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   useEffect(() => {
@@ -73,6 +84,7 @@ export default function Page() {
         setCategories={setCategories}
         onSubmit={handleSubmit}
         onDelete={handleDeletePost}
+        isSubmitting={isSubmitting} // ✅ 子に渡す
       />
     </div>
   )
