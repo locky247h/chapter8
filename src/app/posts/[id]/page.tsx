@@ -13,14 +13,7 @@ export default function Detail() {
   useEffect(() => {
     const fetcher = async () => {
       setIsLoading(true)
-      const res = await fetch(
-        `https://7e95v2wrz1.microcms.io/api/v1/posts/${id}`, // microCMSのエンドポイント
-        {
-          headers: {
-            'X-MICROCMS-API-KEY': process.env.NEXT_PUBLIC_MICRO_CMS_API_KEY as string, // APIキーをセット
-          },
-        },
-      )
+      const res = await fetch(`/api/posts/${id}`)
       const data = await res.json()
       console.log('APIからのデータ:', data);
       setPost(data) // dataをそのままセット
