@@ -8,6 +8,8 @@ import { Category } from '@/types/Category'
 export default function Page() {
   const [categories, setCategories] = useState<Category[]> ([])
 
+
+
   useEffect(() => {
     const fetcher = async () => {
       const res = await fetch('/api/admin/categories')
