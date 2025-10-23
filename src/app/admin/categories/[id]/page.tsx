@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Post } from '@/types/Post'
+import { Post } from '@/types/post'
 import { useParams, useRouter } from 'next/navigation'
-import { CategoryForm } from '../../posts/_components/CategoryForm'
+import { CategoryForm } from '../_components/CategoryForm'
 
 export default function Page() {
   const [name, setName] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const { id } = useParams()
   const router = useRouter()
 
@@ -60,6 +61,7 @@ export default function Page() {
         setName={setName}
         onSubmit={handleSubmit}
         onDelete={handleDeletePost}
+        isSubmitting={isSubmitting}
       />
     </div>
   )

@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Post } from '@/types/Post'
+import { Post } from '@/types/post'
 import { useRouter } from 'next/navigation'
-import { CategoryForm } from '../../posts/_components/CategoryForm'
+import { CategoryForm } from '../_components/CategoryForm'
 
 export default function Page() {
   const [name, setName] = useState('')

@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { PostForm } from '../_components/PostForm'
 import { Category } from '@/types/Category'
-import { Post } from '@/types/Post';
+import { Post } from '@/types/post';
 
 export default function Page() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [thumbnailUrl, setThumbnailUrl] = useState('')
+  const [thumbnailImageKey, setThumbnailImageKey] = useState('')
   const [categories, setCategories] = useState<Category[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false) // ✅ 送信中フラグ追加
   const { id } = useParams()
@@ -27,7 +27,7 @@ export default function Page() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, content, thumbnailUrl, categories }),
+        body: JSON.stringify({ title, content, thumbnailImageKey, categories }),
       })
 
       alert('記事を更新しました。')
@@ -55,12 +55,13 @@ export default function Page() {
 
   useEffect(() => {
     const fetcher = async () => {
+      console.log('取得中の記事ID:', id) // ← まずここ確認
       const res = await fetch(`/api/admin/posts/${id}`)
-      const { post }: { post: Post } = await res.json()
+      const post: Post = await res.json()
       setTitle(post.title)
       setContent(post.content)
-      setThumbnailUrl(post.thumbnailUrl)
-      setCategories(post.postCategories.map((pc) => pc.category))
+      setThumbnailImageKey(post.thumbnailImageKey)
+      setCategories(post.postCategories?.map((pc) => pc.category))
     }
 
     fetcher()
@@ -78,8 +79,8 @@ export default function Page() {
         setTitle={setTitle}
         content={content}
         setContent={setContent}
-        thumbnailUrl={thumbnailUrl}
-        setThumbnailUrl={setThumbnailUrl}
+        thumbnailImageKey={thumbnailImageKey}
+        setThumbnailImageKey={setThumbnailImageKey}
         categories={categories}
         setCategories={setCategories}
         onSubmit={handleSubmit}

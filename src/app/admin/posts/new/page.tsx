@@ -1,17 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Post } from '@/types/Post'
 import { useRouter } from 'next/navigation'
 import { PostForm } from '../_components/PostForm'
+import { Category } from '@/types/Category'
 
 export default function Page() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [thumbnailUrl, setThumbnailUrl] = useState(
-    'https://placehold.jp/800x400.png',
-  ) // 画像URLは、一旦このURL固定でお願いします。後ほど画像アップロード処理を実装します。
-  const [categories, setCategories] = useState<Post['categories']>([])
+  const [thumbnailImageKey, setThumbnailImageKey] = useState('')
+  const [categories, setCategories] = useState<Category[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false) // ✅ ←これを追加！
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,7 +23,7 @@ export default function Page() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ title, content, thumbnailUrl, categories }),
+      body: JSON.stringify({ title, content, thumbnailImageKey, categories }),
     })
 
     // レスポンスから作成した記事のIDを取得します。
@@ -48,11 +47,12 @@ export default function Page() {
         setTitle={setTitle}
         content={content}
         setContent={setContent}
-        thumbnailUrl={thumbnailUrl}
-        setThumbnailUrl={setThumbnailUrl}
+        thumbnailImageKey={thumbnailImageKey}
+        setThumbnailImageKey={setThumbnailImageKey}
         categories={categories}
         setCategories={setCategories}
         onSubmit={handleSubmit}
+        isSubmitting={isSubmitting} // ✅ 追加
       />
     </div>
   )

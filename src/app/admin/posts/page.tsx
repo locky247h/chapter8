@@ -2,20 +2,29 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Post } from '@/types/Post'
+import { Post } from '@/types/post'
+import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession' // ← カスタムフックをimport
 
 export default function Page() {
   const [posts, setPosts] = useState<Post[]>([])
+  const { token } = useSupabaseSession() // ← token取得
 
   useEffect(() => {
+    if (!token) return // token がまだないなら何もしない
+
     const fetcher = async () => {
-      const res = await fetch('/api/admin/posts')
+      const res = await fetch('/api/admin/posts', {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token, // 👈 Header に token を付与
+        },
+      })
       const { posts } = await res.json()
       setPosts(posts)
     }
 
     fetcher()
-  }, [])
+  }, [token]) // token が変わった時に再実行
 
   return (
     <div className="">
