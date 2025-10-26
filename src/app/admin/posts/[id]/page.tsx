@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { PostForm } from '../_components/PostForm'
 import { Category } from '@/types/Category'
 import { Post } from '@/types/post';
+import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession'
 
 export default function Page() {
   const [title, setTitle] = useState('')
@@ -14,6 +15,7 @@ export default function Page() {
   const [isSubmitting, setIsSubmitting] = useState(false) // ✅ 送信中フラグ追加
   const { id } = useParams()
   const router = useRouter()
+  const { token } = useSupabaseSession()
 
   const handleSubmit = async (e: React.FormEvent) => {
     // フォームのデフォルトの動作をキャンセルします。
@@ -25,6 +27,7 @@ export default function Page() {
       await fetch(`/api/admin/posts/${id}`, {
         method: 'PUT',
         headers: {
+          Authorization: token!,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ title, content, thumbnailImageKey, categories }),
@@ -54,10 +57,17 @@ export default function Page() {
   }
 
   useEffect(() => {
+    if (!token) return
+
     const fetcher = async () => {
       console.log('取得中の記事ID:', id) // ← まずここ確認
-      const res = await fetch(`/api/admin/posts/${id}`)
-      const post: Post = await res.json()
+      const res = await fetch(`/api/admin/posts/${id}`, {
+        headers: {
+          Authorization: token,
+          "Content-Type": "application/json",
+        },
+      }) 
+      const { post }: { post: Post } = await res.json()
       setTitle(post.title)
       setContent(post.content)
       setThumbnailImageKey(post.thumbnailImageKey)
@@ -65,7 +75,7 @@ export default function Page() {
     }
 
     fetcher()
-  }, [id])
+  }, [id, token])
 
   return (
     <div className="container mx-auto px-4">

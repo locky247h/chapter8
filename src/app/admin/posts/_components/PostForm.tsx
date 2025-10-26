@@ -81,7 +81,7 @@ export const PostForm: React.FC<Props> = ({
         .from('post_thumbnail')
         .getPublicUrl(thumbnailImageKey)
 
-        setThumbnailImageKey(publicUrl)
+        setThumbnailImageUrl(publicUrl)
       }
 
       fetcher()
@@ -135,7 +135,7 @@ export const PostForm: React.FC<Props> = ({
         {thumbnailImageUrl && (
           <div className="mt-2">
             <Image
-              src={thumbnailImageKey}
+              src={thumbnailImageUrl}
               alt="thumbnail"
               width={400}
               height={400}

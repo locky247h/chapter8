@@ -3,12 +3,11 @@
 import  { useState, useEffect } from 'react';
 import { useParams } from "next/navigation";
 import Image from 'next/image';
-import { MicroCmsPost } from '@/types/post';
 import { Post } from '@/types/post'
 import { supabase } from '@/utils/supabase';
 
 export default function Detail() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -20,9 +19,9 @@ export default function Detail() {
     const fetcher = async () => {
       setIsLoading(true)
       const res = await fetch(`/api/posts/${id}`)
-      const data = await res.json()
-      console.log('APIからのデータ:', data)
-      setPost(data.post)
+      const { post } = await res.json()
+      console.log('APIからのデータ:', post)
+      setPost(post)
       setIsLoading(false)
     }
 
@@ -39,7 +38,6 @@ export default function Detail() {
       } = await supabase.storage
         .from("post_thumbnail")
         .getPublicUrl(post.thumbnailImageKey);
-        console.log('🧩 publicUrl:', publicUrl);
 
       setThumbnailImageUrl(publicUrl);
     };

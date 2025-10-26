@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { Category } from '@/types/Category'
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 interface Props {
   selectedCategories: Category[]
@@ -12,17 +13,26 @@ export const CategoriesSelect: React.FC<Props> = ({
   selectedCategories,
   setSelectedCategories,
 }) => {
-  const [categories, setCategories] = useState<Category[]>([])
+  const [categories, setCategories] = useState<Category[]>([]);
+  const { token } = useSupabaseSession();
 
   // カテゴリ一覧を取得
   useEffect(() => {
-    const fetchCategories = async () => {
-      const res = await fetch('/api/admin/categories')
+    if (!token) return
+
+    const fetcher = async () => {
+      const res = await fetch('/api/admin/categories', {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token,
+        },
+      })
       const { categories } = await res.json()
       setCategories(categories)
     }
-    fetchCategories()
-  }, [])
+
+    fetcher()
+  }, [token])
 
   // 複数選択処理
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -35,8 +45,10 @@ export const CategoriesSelect: React.FC<Props> = ({
     setSelectedCategories(newSelected)
   }
 
+
   return (
     <div className="space-y-2">
+      {/* 複数選択セレクトボックス */}
       <select
         id="categories"
         multiple

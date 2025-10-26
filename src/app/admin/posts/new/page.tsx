@@ -17,8 +17,11 @@ export default function Page() {
     // フォームのデフォルトの動作をキャンセルします。
     e.preventDefault()
 
+    setIsSubmitting(true) // 🔵 送信開始
+
     // 記事を作成します。
-    const res = await fetch('/api/admin/posts', {
+    try {
+      const res = await fetch('/api/admin/posts', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -33,7 +36,13 @@ export default function Page() {
     router.push(`/admin/posts/${id}`)
 
     alert('記事を作成しました。')
+  } catch (error) {
+    console.error('投稿作成エラー:', error)
+    alert('記事の作成に失敗しました。')
+  } finally {
+    setIsSubmitting(false) // 🔴 送信終了
   }
+}
 
   return (
     <div className="container mx-auto px-4">

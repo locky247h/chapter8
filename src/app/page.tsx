@@ -3,11 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Post } from '../types/post';
-// import { MicroCmsPost } from '../types/post';
 
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
-  // const [posts, setPosts] = useState<MicroCmsPost[]>([])
+  
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {

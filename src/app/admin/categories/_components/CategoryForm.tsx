@@ -18,7 +18,7 @@ export const CategoryForm: React.FC<Props> = ({
   isSubmitting,
 }) => {
   return (
-    <div onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4">
       <div>
         <label
           htmlFor="title"
@@ -52,6 +52,6 @@ export const CategoryForm: React.FC<Props> = ({
           削除
         </button>
       )}
-    </div>
+    </form>
   )
 }
