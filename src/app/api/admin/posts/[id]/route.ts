@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Category, PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
+import { UpdatePostRequestBody } from '@/types/post'
 
 const prisma = new PrismaClient()
 
@@ -41,14 +42,6 @@ export const GET = async (
     if (error instanceof Error)
       return NextResponse.json({ status: error.message }, { status: 400 })
   }
-}
-
-// 記事の更新時に送られてくるリクエストのbodyの型
-interface UpdatePostRequestBody {
-  title: string
-  content: string
-  categories: { id: number }[]
-  thumbnailImageKey: string
 }
 
 // PUTという命名にすることで、PUTリクエストの時にこの関数が呼ばれる

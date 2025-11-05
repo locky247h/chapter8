@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/utils/supabase'
+import { CreatePostRequestBody } from '@/types/post'
 
 const prisma = new PrismaClient()
 
@@ -40,18 +41,11 @@ export const GET = async (request: NextRequest) => {
   }
 }
 
-interface CreatePostRequestBody {
-  title: string
-  content: string
-  categories: { id: number }[]
-  thumbnailImageKey: string
-}
-
 // POSTという命名にすることで、POSTリクエストの時にこの関数が呼ばれる
 export const POST = async (request: Request, context: any) => {
   try {
     // リクエストのbodyを取得
-    const body = await request.json()
+    const body: CreatePostRequestBody = await request.json()
 
     // bodyの中からtitle, content, categories, thumbnailUrlを取り出す
     const { title, content, categories, thumbnailImageKey }: CreatePostRequestBody = body

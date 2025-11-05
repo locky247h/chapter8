@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { PostForm } from '../_components/PostForm'
 import { Category } from '@/types/Category'
+import { CreatePostRequestBody } from '@/types/post'
+import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession'
 
 export default function Page() {
   const [title, setTitle] = useState('')
@@ -12,6 +14,8 @@ export default function Page() {
   const [categories, setCategories] = useState<Category[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false) // ✅ ←これを追加！
   const router = useRouter()
+  // Authorizationヘッダーに付与するためにtokenを取得
+  const token = useSupabaseSession().token
 
   const handleSubmit = async (e: React.FormEvent) => {
     // フォームのデフォルトの動作をキャンセルします。
@@ -19,14 +23,22 @@ export default function Page() {
 
     setIsSubmitting(true) // 🔵 送信開始
 
+    const requestBody: CreatePostRequestBody = {
+      title,
+      content,
+      thumbnailImageKey,
+      categories: categories.map((cat) => ({ id: cat.id })), // ✅ Category[] → { id: number }[] に変換
+    }
+
     // 記事を作成します。
     try {
       const res = await fetch('/api/admin/posts', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: token,
       },
-      body: JSON.stringify({ title, content, thumbnailImageKey, categories }),
+      body: JSON.stringify(requestBody),
     })
 
     // レスポンスから作成した記事のIDを取得します。
