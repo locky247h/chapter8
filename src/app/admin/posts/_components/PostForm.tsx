@@ -131,6 +131,7 @@ export const PostForm: React.FC<Props> = ({
           type="file"
           id="thumbnailImageKey"
           onChange={handleImageChange}
+          disabled={isSubmitting} // ✅ 入力不可
         />
         {thumbnailImageUrl && (
           <div className="mt-2">
