@@ -1,30 +1,33 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
 import { Post } from '@/types/post'
 import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession' // ← カスタムフックをimport
+import  useSWR from 'swr' // ← SWRをimport
+
+// fetcher関数を定義
+const fetcher = async (url: string, token: string) => { 
+  const res = await fetch(url, { 
+    headers: { 
+      'Content-type': 'applicartion/json', 
+      Authorization: token, 
+    },
+  })
+  return res.json()
+}
 
 export default function Page() {
-  const [posts, setPosts] = useState<Post[]>([])
   const { token } = useSupabaseSession() // ← token取得
 
-  useEffect(() => {
-    if (!token) return // token がまだないなら何もしない
+  // SWRを使ってデータ取得
+  const {data, error, isLoading} = useSWR( 
+    token ? ['/api/admin/posts', token] : null, // tokenがある場合のみfetch
+    ([url, token]) => fetcher(url, token) // fetcherにurlとtokenを渡す
+  )
 
-    const fetcher = async () => {
-      const res = await fetch('/api/admin/posts', {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token, // 👈 Header に token を付与
-        },
-      })
-      const { posts } = await res.json()
-      setPosts(posts)
-    }
+  if (isLoading) return <div>読み込み中...</div>
+  if (error) return <div>エラーが発生しました</div>
 
-    fetcher()
-  }, [token]) // token が変わった時に再実行
 
   return (
     <div className="">
@@ -36,7 +39,7 @@ export default function Page() {
       </div>
 
       <div className="">
-        {posts.map((post) => {
+        {data?.posts.map((post: Post) => {
           return (
             <Link href={`/admin/posts/${post.id}`} key={post.id}>
               <div className="border-b border-gray-300 p-4 hover:bg-gray-100 cursor-pointer">
