@@ -2,19 +2,43 @@
 
 import { supabase } from '@/utils/supabase'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+//import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+
+const schema = z.object({
+  email: z.email({ message: '正しいメールアドレスを入力してください' }),
+  password: z.string().min(6, { message: 'パスワードは6文字以上で入力してください' }),
+})
+
+// フォームの入力値の型を定義
+type FormValues = z.infer<typeof schema>
 
 export default function Page() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  // フォームの入力値の型を定義
+  // const [email, setEmail] = useState('')
+  // const [password, setPassword] = useState('')
+
   const router = useRouter()
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  // React Hook Formの設定
+  const { register, handleSubmit, formState: { errors }, } = useForm<FormValues>({resolver: zodResolver(schema),
+  })
+  
+  // フォーム送信時の処理
+  // const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  //   event.preventDefault()
 
+  //   const { error } = await supabase.auth.signInWithPassword({
+  //     email,
+  //     password,
+  //   })
+
+  const onSubmit = async (data: FormValues) => {
     const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: data.email,
+      password: data.password,
     })
 
     if (error) {
@@ -26,7 +50,7 @@ export default function Page() {
 
   return (
     <div className="flex justify-center pt-[240px]">
-      <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-[400px]">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 w-full max-w-[400px]">
         <div>
           <label
             htmlFor="email"
@@ -36,13 +60,16 @@ export default function Page() {
           </label>
           <input
             type="email"
-            name="email"
             id="email"
             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             placeholder="name@company.com"
-            required
-            onChange={(e) => setEmail(e.target.value)}
+            {...register('email')}
+            // required
+            // onChange={(e) => setEmail(e.target.value)}
           />
+          {errors.email && (
+            <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+          )}
         </div>
         <div>
           <label
@@ -53,13 +80,16 @@ export default function Page() {
           </label>
           <input
             type="password"
-            name="password"
             id="password"
             placeholder="••••••••"
             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-            required
-            onChange={(e) => setPassword(e.target.value)}
+            {...register('password')}
+            // required
+            // onChange={(e) => setPassword(e.target.value)}
           />
+          {errors.password && (
+            <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+          )}
         </div>
 
         <div>

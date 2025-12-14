@@ -1,27 +1,27 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { PostForm } from '../_components/PostForm'
-import { Category } from '@/types/Category'
-import { Post } from '@/types/post';
+import { Post } from '@/types/post'
 import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession'
+import { useForm } from 'react-hook-form'
+import { CreatePostRequestBody } from '@/types/post'
 
 export default function Page() {
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [thumbnailImageKey, setThumbnailImageKey] = useState('')
-  const [categories, setCategories] = useState<Category[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false) // ✅ 送信中フラグ追加
+
   const { id } = useParams()
   const router = useRouter()
   const { token } = useSupabaseSession()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    // フォームのデフォルトの動作をキャンセルします。
-    e.preventDefault()
+  const { register, handleSubmit, watch, setValue, reset, formState: { isSubmitting, errors },
+  } = useForm<CreatePostRequestBody>({
+    defaultValues: { title: '', content: '', thumbnailImageKey: '', categories: [],
+    },
+  })
 
-    setIsSubmitting(true) // ✅ 送信開始
+  //更新処理
+  const onSubmit = async (data: CreatePostRequestBody) => {
     try {
       // 記事を作成します。
       await fetch(`/api/admin/posts/${id}`, {
@@ -30,32 +30,40 @@ export default function Page() {
           Authorization: token!,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, content, thumbnailImageKey, categories }),
-      })
+        body: JSON.stringify({ 
+          ...data,
+          categories: data.categories.map((cat) => ({ id: cat.id })),
+      }),
+    })
 
-      alert('記事を更新しました。')
-    } finally {
-      setIsSubmitting(false) // ✅ 終わったら解除
+      alert('記事を更新しました。') 
+    } catch (error){
+      console.error('記事更新エラー:', error)
+      alert('記事の更新に失敗しました。')
     }
   }
-
+  
+  //削除処理
   const handleDeletePost = async () => {
     if (!confirm('記事を削除しますか？')) return
 
-    setIsSubmitting(true) // ✅ 削除中も操作不可にする
     try {
       await fetch(`/api/admin/posts/${id}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: token!,
+        },
       })
 
       alert('記事を削除しました。')
-
       router.push('/admin/posts')
-    } finally {
-      setIsSubmitting(false)
+    } catch (error) {
+      console.error('記事削除エラー:', error)
+      alert('記事の削除に失敗しました。')
     }
   }
 
+  //APIから記事データを取得してフォームにセット
   useEffect(() => {
     if (!token) return
 
@@ -68,14 +76,17 @@ export default function Page() {
         },
       }) 
       const { post }: { post: Post } = await res.json()
-      setTitle(post.title)
-      setContent(post.content)
-      setThumbnailImageKey(post.thumbnailImageKey)
-      setCategories(post.postCategories?.map((pc) => pc.category))
+
+      reset({
+        title: post.title,
+        content: post.content,
+        thumbnailImageKey: post.thumbnailImageKey,
+        categories: post.postCategories?.map((pc) => pc.category) ?? [],
+      })
     }
 
     fetcher()
-  }, [id, token])
+  }, [id, token, reset])
 
   return (
     <div className="container mx-auto px-4">
@@ -85,17 +96,12 @@ export default function Page() {
 
       <PostForm
         mode="edit"
-        title={title}
-        setTitle={setTitle}
-        content={content}
-        setContent={setContent}
-        thumbnailImageKey={thumbnailImageKey}
-        setThumbnailImageKey={setThumbnailImageKey}
-        categories={categories}
-        setCategories={setCategories}
-        onSubmit={handleSubmit}
+        register={register}
+        setValue={setValue}
+        watch={watch}
+        onSubmit={handleSubmit(onSubmit)}
         onDelete={handleDeletePost}
-        isSubmitting={isSubmitting} // ✅ 子に渡す
+        isSubmitting={isSubmitting}
       />
     </div>
   )

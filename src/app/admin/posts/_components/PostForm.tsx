@@ -1,42 +1,35 @@
 import React, { ChangeEvent, useEffect, useState } from 'react'
-import { Category } from '@/types/Category'
 import { supabase } from '@/utils/supabase'
 import { v4 as uuidv4 } from 'uuid'
 import Image from 'next/image'
 import { CategoriesSelect } from './CategoriesSelect'
+import { UseFormRegister, UseFormSetValue, UseFormWatch,} from 'react-hook-form'
+import { CreatePostRequestBody } from '@/types/post'
 
-interface Props {
+export interface Props {
   mode: 'new' | 'edit'
-  title: string
-  setTitle: (title: string) => void
-  content: string
-  setContent: (content: string) => void
-  thumbnailImageKey: string
-  setThumbnailImageKey: (thumbnailImageKey: string) => void
-  categories: Category[]
-  setCategories: (categories: Category[]) => void
+  register: UseFormRegister<CreatePostRequestBody>
+  setValue: UseFormSetValue<CreatePostRequestBody>
+  watch: UseFormWatch<CreatePostRequestBody>
   onSubmit: (e: React.FormEvent) => void
   onDelete?: () => void
-  isSubmitting: boolean // ✅ 追加
+  isSubmitting: boolean
 }
 
 export const PostForm: React.FC<Props> = ({
   mode,
-  title,
-  setTitle,
-  content,
-  setContent,
-  thumbnailImageKey,
-  setThumbnailImageKey,
-  categories,
-  setCategories,
-  onSubmit,
-  onDelete,
-  isSubmitting,
+  register, // inputをフォームに紐づける
+  setValue, // 値を手動で更新する
+  watch,   // 値を監視する
+  onSubmit, // onSubmitをラップする
+  onDelete, // 削除ボタンのハンドラ
+  isSubmitting, //エラーや送信中状態
 }) => { 
   const [thumbnailImageUrl, setThumbnailImageUrl] = useState<null | string>(
     null,
   )
+
+  console.log("watchの中身:", watch)
 
   const handleImageChange = async (
     event: ChangeEvent<HTMLInputElement>,
@@ -67,8 +60,10 @@ export const PostForm: React.FC<Props> = ({
     }
 
     // data.pathに画像のパスが格納されているので、thumbnailImageKeyに格納
-    setThumbnailImageKey(data.path)
+    setValue("thumbnailImageKey", data.path)
   }
+
+  const thumbnailImageKey = watch("thumbnailImageKey") // 画像のキーをwatchで監視
 
   // DBに保存しているthumbnailImageKeyを元に、Supabaseから画像のURLを取得する
   useEffect(() => {
@@ -76,8 +71,7 @@ export const PostForm: React.FC<Props> = ({
     
     const fetcher = async () => {
       const {
-        data: { publicUrl },
-      } = await supabase.storage
+        data: { publicUrl } } = await supabase.storage
         .from('post_thumbnail')
         .getPublicUrl(thumbnailImageKey)
 
@@ -99,8 +93,7 @@ export const PostForm: React.FC<Props> = ({
         <input
           type="text"
           id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+         {...register('title')}
           className="mt-1 block w-full rounded-md border border-gray-200 p-3"
           disabled={isSubmitting} // ✅ 入力不可
         />
@@ -114,8 +107,7 @@ export const PostForm: React.FC<Props> = ({
         </label>
         <textarea
           id="content"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
+          {...register('content')}
           className="mt-1 block w-full rounded-md border border-gray-200 p-3"
           disabled={isSubmitting} // ✅ 入力不可
         />
@@ -149,8 +141,11 @@ export const PostForm: React.FC<Props> = ({
           カテゴリー
         </label>
         <CategoriesSelect
-          selectedCategories={categories}
-          setSelectedCategories={setCategories}
+          selectedCategories={watch("categories")}
+          setSelectedCategories={(cats) => {
+            console.log("setSelectedCategoriesに渡されたcats:", cats)
+            setValue("categories", cats)
+          }}
         />
       </div>
       <button

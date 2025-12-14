@@ -1,102 +1,60 @@
 'use client'
 
-import React, { useState } from "react";
+import React from "react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
 
 // APIレスポンスの型
 type ContactResponse = {
-  message: string;
-};
+  message: string
+}
+
+// Zod スキーマ定義
+export const contactSchema = z.object({
+  name: z.string()
+    .min(1, "名前は必須です")
+    .max(30, "名前は30文字以内で入力してください"),
+  email: z.email("有効なメールアドレスを入力してください")
+    .min(1, "メールアドレスは必須です"),
+  message: z.string()
+    .min(1, "本文は必須です")
+    .max(500, "本文は500文字以内で入力してください"),
+})
+
+// フォームの型を Zod から自動生成
+export type ContactForm = z.infer<typeof contactSchema>
 
 export default function Contact() {
-  // ユーザーが入力した文字を保持する状態
-  const [name, setName] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [message, setMessage] = useState<string>('');
+  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<ContactForm>({
+    resolver: zodResolver(contactSchema),
+    defaultValues: { name: "", email: "", message: "" }
+  })
 
-  // エラー状態管理
-  const [nameError, setNameError] = useState<string>('');
-  const [emailError, setEmailError] = useState<string>('');
-  const [messageError, setMessageError] = useState<string>('');
-
-  //送信状態管理
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-
-  const valid = (): boolean => {
-    let isValid = true;
-
-    //名前のバリデーション
-    if (!name) {
-      setNameError('名前は必須です');
-      isValid = false;
-    } else if (name.length > 30) {
-      setNameError('名前は30文字以内で入力してください');
-      isValid = false;
-    } else {
-      setNameError('');
-    }
-
-    //メールのバリデーション
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email){
-      setEmailError('メールアドレスは必須です');
-      isValid = false;
-    } else if (!emailPattern.test(email)) {
-      setEmailError('有効なメールアドレスを入力してください');
-      isValid = false;
-    } else {
-      setEmailError('');
-    }
-
-    // 本文のバリデーション
-    if (!message) {
-      setMessageError('本文は必須です');
-      isValid = false;
-    } else if (message.length > 500) {
-      setMessageError('本文は500文字以内で入力してください');
-      isValid = false;
-    } else {
-      setMessageError('');
-    }
-
-    if (!isValid) return false;
-
-    return isValid;
-  }
-
-  //送信処理
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-  
-    if (!valid()) return;
-
-    setIsSubmitting(true);  //送信中フラグON
-  
+  // 送信処理
+  const onSubmit = async (data: ContactForm) => {
     try {
-      const res = await fetch("https://1hmfpsvto6.execute-api.ap-northeast-1.amazonaws.com/dev/contacts", {
+      const res = await fetch("https://1hmfpsvto6.execute-api.ap-northeast-1.amazonaws.com/dev/contacts",{
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ name, email, message })
-      });
+        body: JSON.stringify(data),
+      })
 
-      const data: ContactResponse = await res.json();
-      console.log(data.message);
+      const result: ContactResponse = await res.json()
+      console.log(result.message)
 
-      alert("送信しました！");
-      setName('');
-      setEmail('');
-      setMessage('');
+      alert("送信しました！")
+      reset() // フォームをクリア
     } catch (error) {
-      console.error("送信に失敗しました", error);
-      alert("送信に失敗しました。もう一度お試しください。");
-    } finally {
-      setIsSubmitting(false);   //送信完了でOFFに戻す
+      console.error("送信に失敗しました", error)
+      alert("送信に失敗しました。もう一度お試しください。")
     }
-  };
+  }
 
   return(
     <div className="max-w-[800px] mx-auto py-8 px-4">
     <h1 className="text-xl font-bold mb-15">問い合わせフォーム</h1>
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
       {/* お名前 */}
       <div className="flex items-start">
@@ -105,11 +63,10 @@ export default function Contact() {
           <input
             type="text"
             className="w-full border p-2 rounded-md"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            {...register("name")}
             disabled={isSubmitting}
           /> 
-          {nameError && <p className="text-red-500 text-sm mt-1">{nameError}</p>}
+          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
         </div> 
       </div>
 
@@ -120,11 +77,10 @@ export default function Contact() {
           <input
           type="email"
           className="w-full border p-2 rounded-md"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          {...register("email")}
           disabled={isSubmitting}
           />
-          {emailError && <p className="text-red-500 text-sm mt-1">{emailError}</p>}
+          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
         </div>
       </div>
 
@@ -135,11 +91,10 @@ export default function Contact() {
           <textarea
             className="w-full border p-2 rounded-md"
             rows={5}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            {...register("message")}
             disabled={isSubmitting}
           />
-          {messageError && <p className="text-red-500 text-sm mt-1">{messageError}</p>}
+          {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message.message}</p>}
         </div>
       </div>
 
@@ -155,11 +110,7 @@ export default function Contact() {
         <button
         type="button"
         className="bg-gray-300 text-black px-4 py-2 rounded-md"
-        onClick={()=> {
-          setName('');
-          setEmail('');
-          setMessage('');
-        }}
+        onClick={()=> reset()}
         disabled={isSubmitting}
         >
           クリア
