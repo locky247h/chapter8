@@ -1,20 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+//import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CategoryForm } from '../_components/CategoryForm'
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession"
 
 export default function Page() {
-  const [name, setName] = useState('')
+  // const [name, setName] = useState('')
   const router = useRouter()
   const { token } = useSupabaseSession()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  //const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (values: { name: string }) => {
     // フォームのデフォルトの動作をキャンセルします。
-    e.preventDefault()
-    setIsSubmitting(true) // 🔵 送信開始
+    // e.preventDefault()
+    //setIsSubmitting(true) // 🔵 送信開始
 
     // カテゴリーを作成します。
     try {
@@ -24,7 +24,7 @@ export default function Page() {
           'Content-Type': 'application/json',
           Authorization: token!,
         },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify(values),
       })
 
       // レスポンスから作成したカテゴリーのIDを取得します。
@@ -37,8 +37,8 @@ export default function Page() {
     } catch (error) {
       console.error('カテゴリー作成エラー:', error)
       alert('カテゴリーの作成に失敗しました。')
-    } finally {
-      setIsSubmitting(false) // 🔴 送信終了
+    // } finally {
+    //   setIsSubmitting(false) // 🔴 送信終了
     }
   }
   return (
@@ -49,10 +49,10 @@ export default function Page() {
 
       <CategoryForm
         mode="new"
-        name={name}
-        setName={setName}
+        // name={name}
+        // setName={setName}
         onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
+        // isSubmitting={isSubmitting}
       />
     </div>
   )

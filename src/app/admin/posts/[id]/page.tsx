@@ -14,7 +14,7 @@ export default function Page() {
   const router = useRouter()
   const { token } = useSupabaseSession()
 
-  const { register, handleSubmit, watch, setValue, reset, formState: { isSubmitting, errors },
+  const { register, handleSubmit, watch, setValue, reset, formState: { isSubmitting },
   } = useForm<CreatePostRequestBody>({
     defaultValues: { title: '', content: '', thumbnailImageKey: '', categories: [],
     },
