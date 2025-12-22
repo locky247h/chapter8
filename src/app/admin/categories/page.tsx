@@ -1,25 +1,19 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useState } from "react"
-import { Post } from '@/types/Post'
 import { Category } from '@/types/Category'
-
+import { useFetch } from "@/app/admin/_hooks/useFetch"
 export default function Page() {
-  const [categories, setCategories] = useState<Category[]> ([])
 
-
-
-  useEffect(() => {
-    const fetcher = async () => {
-      const res = await fetch('/api/admin/categories')
-      const { categories } = await res.json()
-      setCategories(categories)
-    }
-
-    fetcher()
-  }, [])
-
+  const { data, error, isLoading } = useFetch<{ categories: Category[] }>(
+    `/api/admin/categories`
+  )
+  
+  if (isLoading) return <div>Loading...</div>
+  if (error) return <div>Failed to load</div>
+  
+ const categories = data?.categories ?? []
+  
   return (
     <div className="">
     <div className="flex justify-between items-center mb-8">

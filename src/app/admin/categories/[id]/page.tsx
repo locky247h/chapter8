@@ -3,33 +3,41 @@
 import { useParams, useRouter } from 'next/navigation'
 import { CategoryForm } from '../_components/CategoryForm'
 import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession'
-import useSWR from 'swr'
+import { useFetch } from '@/app/admin/_hooks/useFetch'
+import { Category } from '@/types/Category'
 
 export default function Page() {
   const { id } = useParams()
   const router = useRouter()
   const { token } = useSupabaseSession()
 
-  // フォームの状態管理()
-  const fetcher = (url: string) => 
-    fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: token!,
-      },
-    }).then(res => res.json())
+  // useFetchを使ってカテゴリー情報を取得
+  const { data, error, isLoading, mutate } = useFetch<{ category: Category }>(
+    token ? `/api/admin/categories/${id}` : null
+  )
 
-    // SWRを使ってカテゴリー情報を取得
-    const { data, error, isLoading, mutate } = useSWR<{ category:{ id: number; name:string } }>(
-      token ? '/api/categories/${id}' : null,
-      fetcher
-    )
+  const category = data?.category
 
-    const category = data?.category
+  // // フォームの状態管理()
+  // const fetcher = (url: string) => 
+  //   fetch(url, {
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //       Authorization: token!,
+  //     },
+  //   }).then(res => res.json())
+
+  //   // SWRを使ってカテゴリー情報を取得
+  //   const { data, error, isLoading, mutate } = useSWR<{ category:{ id: number; name:string } }>(
+  //     token ? '/api/categories/${id}' : null,
+  //     fetcher
+  //   )
+
+  //   const category = data?.category
 
   // ✅ 更新処理
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (values: { name: string }) => {
+    // e.preventDefault()  // CategoryForm内でpreventDefaultしているため不要
     try {
       await fetch(`/api/admin/categories/${id}`, {
         method: 'PUT',
@@ -37,7 +45,7 @@ export default function Page() {
           'Content-Type': 'application/json',
           Authorization: token!,
         },
-        body: JSON.stringify({ name: category?.name }),
+        body: JSON.stringify(values),
       })
       alert('カテゴリーを更新しました。')
       mutate() // 🔄 キャッシュ更新（再フェッチ）
@@ -77,11 +85,10 @@ export default function Page() {
       {category && (
         <CategoryForm
           mode="edit"
-          name={category.name}
-          setName={() => {}} 
+          defaultValues={{ name: category.name }} // ← 初期値を渡す
           onSubmit={handleSubmit}
           onDelete={handleDeletePost}
-          isSubmitting={false}
+          //isSubmitting={false}
         />
       )}
     </div>
