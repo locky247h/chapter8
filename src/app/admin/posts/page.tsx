@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { Post } from '@/types/post'
 import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession' // ← カスタムフックをimport
-import  useSWR from 'swr' // ← SWRをimport
+//import  useSWR from 'swr' // ← SWRをimport
+import { useFetch } from '../_hooks/useFetch'
 
 // fetcher関数を定義
 const fetcher = async (url: string, token: string) => { 
@@ -19,11 +20,17 @@ const fetcher = async (url: string, token: string) => {
 export default function Page() {
   const { token } = useSupabaseSession() // ← token取得
 
-  // SWRを使ってデータ取得
-  const {data, error, isLoading} = useSWR( 
-    token ? ['/api/admin/posts', token] : null, // tokenがある場合のみfetch
-    ([url, token]) => fetcher(url, token) // fetcherにurlとtokenを渡す
+  // useFetchカスタムフックを使ってデータ取得
+  const { data, error, isLoading } = useFetch<{ posts: Post[]}>(
+    token ? '/api/admin/posts' : null
   )
+
+
+  // // SWRを使ってデータ取得
+  // const {data, error, isLoading} = useSWR(
+  //   token ? ['/api/admin/posts', token] : null, // tokenがある場合のみfetch
+  //   ([url, token]) => fetcher(url, token) // fetcherにurlとtokenを渡す
+  // )
 
   if (isLoading) return <div>読み込み中...</div>
   if (error) return <div>エラーが発生しました</div>

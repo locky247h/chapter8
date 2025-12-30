@@ -7,6 +7,7 @@ import { Post } from '@/types/post'
 import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession'
 import { useForm } from 'react-hook-form'
 import { CreatePostRequestBody } from '@/types/post'
+import { useFetch } from '../../_hooks/useFetch'
 
 export default function Page() {
 
@@ -19,6 +20,11 @@ export default function Page() {
     defaultValues: { title: '', content: '', thumbnailImageKey: '', categories: [],
     },
   })
+
+  //記事データ取得
+const { data, error, isLoading } = useFetch<{ post: Post }>(
+    token ? `/api/admin/posts/${id}` : null
+  )
 
   //更新処理
   const onSubmit = async (data: CreatePostRequestBody) => {
@@ -63,20 +69,10 @@ export default function Page() {
     }
   }
 
-  //APIから記事データを取得してフォームにセット
+  //記事データをフォームにセット
   useEffect(() => {
-    if (!token) return
-
-    const fetcher = async () => {
-      console.log('取得中の記事ID:', id) // ← まずここ確認
-      const res = await fetch(`/api/admin/posts/${id}`, {
-        headers: {
-          Authorization: token,
-          "Content-Type": "application/json",
-        },
-      }) 
-      const { post }: { post: Post } = await res.json()
-
+    if (data?.post) {
+      const post = data.post
       reset({
         title: post.title,
         content: post.content,
@@ -84,10 +80,36 @@ export default function Page() {
         categories: post.postCategories?.map((pc) => pc.category) ?? [],
       })
     }
+  }, [data, reset])
 
-    fetcher()
-  }, [id, token, reset])
+  if (isLoading) return <div>Loading...</div>
+  if (error) return <div>Failed to load</div>
 
+  // //APIから記事データを取得してフォームにセット
+  // useEffect(() => {
+  //   if (!token) return
+
+  //   const fetcher = async () => {
+  //     console.log('取得中の記事ID:', id) // ← まずここ確認
+  //     const res = await fetch(`/api/admin/posts/${id}`, {
+  //       headers: {
+  //         Authorization: token,
+  //         "Content-Type": "application/json",
+  //       },
+  //     }) 
+  //     const { post }: { post: Post } = await res.json()
+
+  //     reset({
+  //       title: post.title,
+  //       content: post.content,
+  //       thumbnailImageKey: post.thumbnailImageKey,
+  //       categories: post.postCategories?.map((pc) => pc.category) ?? [],
+  //     })
+  //   }
+
+  //   fetcher()
+  // }, [id, token, reset])
+  
   return (
     <div className="container mx-auto px-4">
       <div className="mb-8">
