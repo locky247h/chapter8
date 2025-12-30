@@ -2,35 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-// import type { Post } from './_types/types';
-import { MicroCmsPost } from '../types/post';
+import type { Post } from '../types/post';
 
 export default function Home() {
-  // const [posts, setPosts] = useState<Post[]>([]);
-  const [posts, setPosts] = useState<MicroCmsPost[]>([])
+  const [posts, setPosts] = useState<Post[]>([]);
+  
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  // APIでpostsを取得する処理をuseEffectで実行します。
-  // useEffect(() => {
-  //   const fetcher = async () => {
-  //     setIsLoading(true);
-  //     const res = await fetch(`https://1hmfpsvto6.execute-api.ap-northeast-1.amazonaws.com/dev/posts`);
-  //     const data = await res.json();
-  //     setPosts(data.posts);
-  //     setIsLoading(false);
-  //   }
 
   useEffect(() => {
     const fetcher = async () => {
-      setIsLoading(true);
-      const res = await fetch('https://7e95v2wrz1.microcms.io/api/v1/posts', { // 管理画面で取得したエンドポイントを入力してください。
-        headers: { // fetch関数の第二引数にheadersを設定でき、その中にAPIキーを設定します。
-          'X-MICROCMS-API-KEY': process.env.NEXT_PUBLIC_MICRO_CMS_API_KEY as string, // 管理画面で取得したAPIキーを入力してください。
-        },
-      })
-      const { contents } = await res.json()
-      setPosts(contents)
-      setIsLoading(false);
+      setIsLoading(true)
+      try {
+        const res = await fetch('/api/posts')
+        const { posts } = await res.json()
+        setPosts(posts)
+      } catch (error) {
+        console.error('記事の取得に失敗しました:', error)
+      } finally {
+        setIsLoading(false)
+      }
     }
 
     fetcher()
@@ -52,10 +42,10 @@ export default function Home() {
                     {new Date(post.createdAt).toLocaleDateString()}
                   </div>
                   <div className="flex space-x-2">
-                    {post.categories.map((category) => {
+                    {post.postCategories.map((pc) => {
                       return (
-                        <div key={category.id} className="border-2 border-blue-300 rounded px-2 py-0.5 text-sm text-blue-300">
-                        {category.name}
+                        <div key={pc.category.id} className="border-2 border-blue-300 rounded px-2 py-0.5 text-sm text-blue-300">
+                        {pc.category.name}
                         </div>
                       )
                     })}

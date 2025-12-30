@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { CreateCategoryRequestBody } from '@/types/Category'
 
 const prisma = new PrismaClient()
 
@@ -20,15 +21,10 @@ export const GET = async (request: NextRequest) => {
   }
 }
 
-// カテゴリーの作成時に送られてくるリクエストのbodyの型
-interface CreateCategoryRequestBody {
-  name: string
-}
-
 export const POST = async (request: Request, context: any) => {
   try {
     // リクエストのbodyを取得
-    const body = await request.json()
+    const body: CreateCategoryRequestBody = await request.json()
 
     // bodyの中からnameを取り出す
     const { name }: CreateCategoryRequestBody = body
