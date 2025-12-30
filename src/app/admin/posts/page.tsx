@@ -6,16 +6,16 @@ import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession' // ← カ�
 //import  useSWR from 'swr' // ← SWRをimport
 import { useFetch } from '../_hooks/useFetch'
 
-// fetcher関数を定義
-const fetcher = async (url: string, token: string) => { 
-  const res = await fetch(url, { 
-    headers: { 
-      'Content-type': 'applicartion/json', 
-      Authorization: token, 
-    },
-  })
-  return res.json()
-}
+// // fetcher関数を定義
+// const fetcher = async (url: string, token: string) => { 
+//   const res = await fetch(url, { 
+//     headers: { 
+//       'Content-type': 'applicartion/json', 
+//       Authorization: token, 
+//     },
+//   })
+//   return res.json()
+// }
 
 export default function Page() {
   const { token } = useSupabaseSession() // ← token取得
